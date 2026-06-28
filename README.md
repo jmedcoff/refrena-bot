@@ -3,7 +3,7 @@
 A Discord bot for tournament automation and integrations.
 
 ## Requirements
- - Needs fix: role updates based on reactions to a specified post (with refresh on bot start and with !pronouns command)
+ - Done: role updates based on reactions to a specified post (with refresh on bot start and with !pronouns command)
  - Done: rule recall (!rule n posts the text of the corresponding rule from the rules channel, and mentions admins)
  - TBD: unit tests? maybe
 
