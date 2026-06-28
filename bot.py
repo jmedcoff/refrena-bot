@@ -59,7 +59,7 @@ class RefrenaBot(commands.Bot):
         await self.change_presence(
             activity=discord.Activity(
                 type=discord.ActivityType.playing,
-                name="Burning Flame LEGGENDARIA"
+                name="Burning Flame SPL"
             )
         )
     

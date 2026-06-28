@@ -2,20 +2,21 @@
 import discord
 from discord.ext import commands
 import logging
+from config import Config
 
 from utils.role_helpers import collect_reactions, add_missing_roles, remove_stale_roles
 
 logger = logging.getLogger(__name__)
 
-PRONOUN_CHANNEL_ID = 1489793594884886612
-PRONOUN_MESSAGE_ID = 1489794045495611392
+PRONOUN_CHANNEL_ID = Config.PRONOUN_CHANNEL_ID
+PRONOUN_MESSAGE_ID = Config.PRONOUN_MESSAGE_ID
 
 # Emoji to Role ID mapping - Replace with your actual role IDs
 EMOJI_ROLE_MAP = {
-    "💙": 1489791445375258755,  # he/him role ID
-    "🩷": 1489791383190503507,  # she/her role ID
-    "💚": 1489791184661643436,  # they/them role ID
-    "🧡": 1490038813857415228,  # any pronouns role ID
+    "💙": Config.PRONOUN_ROLE_HE,  # he/him role ID
+    "🩷": Config.PRONOUN_ROLE_SHE,  # she/her role ID
+    "💚": Config.PRONOUN_ROLE_THEY,  # they/them role ID
+    "🧡": Config.PRONOUN_ROLE_ANY,  # any pronouns role ID
 }
 
 
