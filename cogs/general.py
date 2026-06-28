@@ -16,6 +16,7 @@ class General(commands.Cog):
     
     # When a user posts a message containing "!rule n", the bot will post rule number n from the rules message in the rules channel.
     @commands.command(name="rule", help="Get a specific rule by number. Usage: !rule <number>")
+    @commands.cooldown(1, 15, commands.BucketType.user)
     async def rules(self, ctx, rule_number: int):
         """Fetch and display a specific rule from the rules message."""
         try:

@@ -27,7 +27,7 @@ class RefrenaBot(commands.Bot):
     def __init__(self):
         intents = discord.Intents.default()
         intents.message_content = True
-        # intents.members = True  # TBD
+        intents.members = True
         
         super().__init__(
             command_prefix=Config.COMMAND_PREFIX,
@@ -79,7 +79,7 @@ class RefrenaBot(commands.Bot):
         # Log unexpected errors
         trace_identifier = random.randint(1000, 9999)  # Simple trace ID for correlating logs
         logger.error(f"Error in command {ctx.command} (Trace ID: {trace_identifier}): {error}", exc_info=error)
-        await ctx.send("❌ An error occurred while processing the command. ({trace_identifier})")
+        await ctx.send(f"❌ An error occurred while processing the command. ({trace_identifier})")
 
 
 async def main():

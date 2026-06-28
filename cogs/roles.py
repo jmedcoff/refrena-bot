@@ -4,7 +4,7 @@ from discord.ext import commands
 import logging
 from config import Config
 
-from utils.role_helpers import collect_reactions, add_missing_roles, remove_stale_roles
+from utils.role_helpers import collect_reactions, add_missing_roles, remove_stale_roles, get_or_fetch_member
 
 logger = logging.getLogger(__name__)
 
@@ -13,10 +13,10 @@ PRONOUN_MESSAGE_ID = Config.PRONOUN_MESSAGE_ID
 
 # Emoji to Role ID mapping - Replace with your actual role IDs
 EMOJI_ROLE_MAP = {
-    "💙": Config.PRONOUN_ROLE_HE,  # he/him role ID
-    "🩷": Config.PRONOUN_ROLE_SHE,  # she/her role ID
-    "💚": Config.PRONOUN_ROLE_THEY,  # they/them role ID
-    "🧡": Config.PRONOUN_ROLE_ANY,  # any pronouns role ID
+    "\U0001F499": Config.PRONOUN_ROLE_HE,  # he/him role ID
+    "\U0001F49C": Config.PRONOUN_ROLE_SHE,  # she/her role ID
+    "\U0001F49B": Config.PRONOUN_ROLE_THEY,  # they/them role ID
+    "\U0001FA76": Config.PRONOUN_ROLE_ANY,  # any pronouns role ID
 }
 
 
@@ -30,9 +30,13 @@ class Roles(commands.Cog):
         """Sync pronoun roles on cog load."""
         logger.info("Roles cog loaded, syncing pronoun roles...")
         if PRONOUN_MESSAGE_ID != 0:
-            await self.sync_pronoun_roles()
+            self.bot.loop.create_task(self._sync_on_ready())
         else:
             logger.warning("PRONOUN_MESSAGE_ID not found/configured, skipping sync")
+
+    async def _sync_on_ready(self):
+        await self.bot.wait_until_ready()
+        await self.sync_pronoun_roles()
     
     async def sync_pronoun_roles(self):
         """Sync roles based on current reactions - adds AND removes roles as needed."""
@@ -66,12 +70,7 @@ class Roles(commands.Cog):
             logger.error(f"Could not find channel {PRONOUN_CHANNEL_ID}")
             return None
         
-        message = await channel.fetch_message(PRONOUN_MESSAGE_ID)
-        if not message:
-            logger.error(f"Could not find message {PRONOUN_MESSAGE_ID} in channel {PRONOUN_CHANNEL_ID}")
-            return None
-        
-        return message
+        return await channel.fetch_message(PRONOUN_MESSAGE_ID)
     
     @commands.Cog.listener()
     async def on_raw_reaction_add(self, payload: discord.RawReactionActionEvent):
@@ -94,15 +93,15 @@ class Roles(commands.Cog):
         if not guild:
             return
         
-        member = guild.get_member(payload.user_id)
+        member = await get_or_fetch_member(guild, payload.user_id)
         if not member:
             return
-        
+
         role = guild.get_role(EMOJI_ROLE_MAP[emoji_str])
         if not role:
             logger.warning(f"Role {EMOJI_ROLE_MAP[emoji_str]} not found for emoji {emoji_str}")
             return
-        
+
         # Skip if member already has the role
         if role in member.roles:
             return
@@ -110,8 +109,8 @@ class Roles(commands.Cog):
         try:
             await member.add_roles(role, reason=f"Pronoun role reaction: {emoji_str}")
             logger.info(f"Added {role.name} to {member.name}")
-        except discord.Forbidden:
-            logger.error(f"Missing permissions to add role {role.name}")
+        except discord.Forbidden as e:
+            logger.error(f"Missing permissions to add role {role.name}: {e}")
         except Exception as e:
             logger.error(f"Error adding role: {e}", exc_info=True)
     
@@ -130,10 +129,10 @@ class Roles(commands.Cog):
         if not guild:
             return
         
-        member = guild.get_member(payload.user_id)
+        member = await get_or_fetch_member(guild, payload.user_id)
         if not member:
             return
-        
+
         role = guild.get_role(EMOJI_ROLE_MAP[emoji_str])
         if not role:
             return

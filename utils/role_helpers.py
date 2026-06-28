@@ -5,6 +5,20 @@ import logging
 logger = logging.getLogger(__name__)
 
 
+async def get_or_fetch_member(guild: discord.Guild, user_id: int) -> discord.Member | None:
+    """Return a Member from cache, falling back to a REST fetch if not cached."""
+    member = guild.get_member(user_id)
+    if member:
+        return member
+    try:
+        return await guild.fetch_member(user_id)
+    except discord.NotFound:
+        return None
+    except discord.HTTPException as e:
+        logger.warning(f"Could not fetch member {user_id} from guild {guild.id}: {e}")
+        return None
+
+
 async def collect_reactions(message: discord.Message, emoji_filter: dict) -> set[tuple[int, str]]:
     """
     Collect all reactions from a message that match the emoji filter.
@@ -53,14 +67,19 @@ async def add_missing_roles(guild: discord.Guild, reactions: set[tuple[int, str]
             logger.warning(f"Role {role_id} not found for emoji {emoji_str}")
             continue
         
-        member = guild.get_member(user_id)
+        member = await get_or_fetch_member(guild, user_id)
         if not member:
             continue
         
         if role not in member.roles:
-            await member.add_roles(role, reason="RefrenaBot: Pronoun role sync")
-            added_count += 1
-            logger.info(f"Added {role.name} to {member.name}")
+            try:
+                await member.add_roles(role, reason="RefrenaBot: Pronoun role sync")
+                added_count += 1
+                logger.info(f"Added {role.name} to {member.name}")
+            except discord.Forbidden:
+                logger.error(f"Missing permissions to add {role.name} to {member.name}")
+            except discord.HTTPException as e:
+                logger.error(f"Failed to add {role.name} to {member.name}: {e}")
     
     return added_count
 
@@ -89,8 +108,13 @@ async def remove_stale_roles(guild: discord.Guild, current_reactions: set[tuple[
         for member in role.members:
             # If they don't have the corresponding reaction, remove the role
             if (member.id, emoji_str) not in current_reactions:
-                await member.remove_roles(role, reason="RefrenaBot: Pronoun role sync - reaction removed")
-                removed_count += 1
-                logger.info(f"Removed {role.name} from {member.name}")
+                try:
+                    await member.remove_roles(role, reason="RefrenaBot: Pronoun role sync - reaction removed")
+                    removed_count += 1
+                    logger.info(f"Removed {role.name} from {member.name}")
+                except discord.Forbidden:
+                    logger.error(f"Missing permissions to remove {role.name} from {member.name}")
+                except discord.HTTPException as e:
+                    logger.error(f"Failed to remove {role.name} from {member.name}: {e}")
     
     return removed_count
