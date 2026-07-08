@@ -75,7 +75,11 @@ class RefrenaBot(commands.Bot):
         if isinstance(error, commands.MissingPermissions):
             await ctx.send("❌ You don't have permission to use this command.")
             return
-        
+
+        if isinstance(error, commands.CommandOnCooldown):
+            await ctx.send(f"❌ This command is on cooldown. Try again in {error.retry_after:.1f}s.")
+            return
+
         # Log unexpected errors
         trace_identifier = random.randint(1000, 9999)  # Simple trace ID for correlating logs
         logger.error(f"Error in command {ctx.command} (Trace ID: {trace_identifier}): {error}", exc_info=error)
