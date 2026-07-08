@@ -5,6 +5,7 @@ A Discord bot for tournament automation and integrations.
 ## Requirements
  - Done: role updates based on reactions to a specified post (with refresh on bot start and with !pronouns command)
  - Done: rule recall (!rule n posts the text of the corresponding rule from the rules channel, and mentions admins)
+ - Done: !rank command for users to self assign role based on SP/DP dan/kyu rank
  - TBD: unit tests? maybe
 
 ## Setup

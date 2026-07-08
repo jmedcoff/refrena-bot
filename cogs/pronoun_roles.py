@@ -1,10 +1,10 @@
-"""Role management commands and listeners."""
+"""Pronoun role management commands and listeners."""
 import discord
 from discord.ext import commands
 import logging
 from config import Config
 
-from utils.role_helpers import collect_reactions, add_missing_roles, remove_stale_roles, get_or_fetch_member
+from utils.pronoun_role_helpers import collect_reactions, add_missing_roles, remove_stale_roles, get_or_fetch_member
 
 logger = logging.getLogger(__name__)
 
@@ -20,15 +20,15 @@ EMOJI_ROLE_MAP = {
 }
 
 
-class Roles(commands.Cog):
-    """Role management commands and listeners."""
+class PronounRoles(commands.Cog):
+    """Pronoun role management commands and listeners."""
     
     def __init__(self, bot):
         self.bot = bot
     
     async def cog_load(self):
         """Sync pronoun roles on cog load."""
-        logger.info("Roles cog loaded, syncing pronoun roles...")
+        logger.info("PronounRoles cog loaded, syncing pronoun roles...")
         if PRONOUN_MESSAGE_ID != 0:
             self.bot.loop.create_task(self._sync_on_ready())
         else:
@@ -107,7 +107,7 @@ class Roles(commands.Cog):
             return
         
         try:
-            await member.add_roles(role, reason=f"Pronoun role reaction: {emoji_str}")
+            await member.add_roles(role, reason=f"Refrena: pronoun role reaction: {emoji_str}")
             logger.info(f"Added {role.name} to {member.name}")
         except discord.Forbidden as e:
             logger.error(f"Missing permissions to add role {role.name}: {e}")
@@ -141,14 +141,14 @@ class Roles(commands.Cog):
             return
         
         try:
-            await member.remove_roles(role, reason=f"Pronoun role reaction removed: {emoji_str}")
+            await member.remove_roles(role, reason=f"Refrena: pronoun role reaction removed: {emoji_str}")
             logger.info(f"Removed {role.name} from {member.name}")
         except discord.Forbidden:
             logger.error(f"Missing permissions to remove role {role.name}")
         except Exception as e:
             logger.error(f"Error removing role: {e}", exc_info=True)
     
-    @commands.command(name="sync_pronouns")
+    @commands.command(name="pronounsync", help="Manually trigger pronoun role sync (Admin only).")
     @commands.has_permissions(administrator=True)
     async def sync_pronouns_command(self, ctx):
         """Manually trigger pronoun role sync (Admin only)."""
@@ -159,4 +159,4 @@ class Roles(commands.Cog):
 
 async def setup(bot):
     """Required function to load the cog."""
-    await bot.add_cog(Roles(bot))
+    await bot.add_cog(PronounRoles(bot))
